@@ -16,8 +16,7 @@ page_files <- list.files("pages",
 sapply(page_files, source)
 
 # 
-ui <- fluidPage(
-  navbarPage(
+ui <- navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
     tabPanel("Exploratory Data Analysis", eda_ui),
@@ -25,7 +24,7 @@ ui <- fluidPage(
     tabPanel("Spatial Cluster", spatial_cluster_ui),
     tabPanel("Spatiotemporal", spatiotemporal_ui),
     inverse=T
-))
+)
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
