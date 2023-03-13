@@ -9,15 +9,21 @@
 
 pacman::p_load(shiny)
 
-source("pages/home.R")
-source("pages/about.R")
+# Load all page files
+page_files <- list.files("pages", 
+           pattern="*.R", full.names=TRUE, 
+           ignore.case=TRUE)
+sapply(page_files, source)
 
 # 
 ui <- fluidPage(
   navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
-    tabPanel("About", about_ui),
+    tabPanel("Exploratory Data Analysis", eda_ui),
+    tabPanel("Kernel Density", kde_ui),
+    tabPanel("Spatial Cluster", spatial_cluster_ui),
+    tabPanel("Spatiotemporal", spatiotemporal_ui),
     inverse=T
 ))
 
