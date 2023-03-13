@@ -9,16 +9,17 @@
 
 pacman::p_load(shiny)
 
-source("home.R")
-source("about.R")
+source("pages/home.R")
+source("pages/about.R")
 
 # 
 ui <- fluidPage(
-  tabsetPanel(
+  navbarPage(
+    title="FINE",
     tabPanel("Home", home_ui),
-    tabPanel("About", about_ui)
-  )
-)
+    tabPanel("About", about_ui),
+    inverse=T
+))
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
