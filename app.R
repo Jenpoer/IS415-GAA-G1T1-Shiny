@@ -19,7 +19,7 @@ sapply(page_files, source)
 ui <- navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
-    tabPanel("Exploratory Data Analysis", eda_ui),
+    tabPanel("Exploratory Data Analysis", eda_point_map_ui("eda_point_map")),
     tabPanel("Kernel Density", kde_ui),
     tabPanel("Spatial Cluster", spatial_cluster_ui),
     tabPanel("Spatiotemporal", spatiotemporal_ui),
@@ -28,7 +28,7 @@ ui <- navbarPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
+  output$eda_point_map <- renderTmap({eda_point_map_server(input)})
 }
 
 # Run the application 
