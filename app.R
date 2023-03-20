@@ -15,7 +15,7 @@ page_files <- list.files("pages",
            ignore.case=TRUE)
 sapply(page_files, source)
 
-# 
+# Main UI
 ui <- navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
@@ -26,8 +26,12 @@ ui <- navbarPage(
     inverse=T
 )
 
-# Define server logic required to draw a histogram
-server <- function(input, output) {
+# Main Server
+server <- function(input, output, session) {
+  # --------------------
+  # EDA
+  # --------------------
+  observe(eda_change_date_slider(input, session))
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
 }
 
