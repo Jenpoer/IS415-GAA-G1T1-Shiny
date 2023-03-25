@@ -19,7 +19,7 @@ sapply(page_files, source)
 ui <- navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
-    tabPanel("Exploratory Data Analysis", eda_point_map_ui("eda_point_map")),
+    tabPanel("Exploratory Data Analysis", eda_ui("eda_point_map")),
     tabPanel("Kernel Density", kde_ui),
     tabPanel("Spatial Cluster", spatial_cluster_ui),
     tabPanel("Spatiotemporal", spatiotemporal_ui),
