@@ -21,7 +21,7 @@ ui <- navbarPage(
     tabPanel("Home", home_ui),
     tabPanel("Exploratory Data Analysis", eda_point_map_ui("eda_point_map")),
     tabPanel("Kernel Density", kde_ui),
-    tabPanel("Spatial Cluster", spatial_cluster_ui),
+    tabPanel("Spatial Cluster", spatial_cluster_ui("spatial_cluster_plot")),
     tabPanel("Spatiotemporal", spatiotemporal_ui),
     inverse=T
 )
@@ -29,6 +29,7 @@ ui <- navbarPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
+  output$spatial_cluster_plot <- renderTmap({spatial_cluster_server(input)})
 }
 
 # Run the application 
