@@ -15,19 +15,23 @@ page_files <- list.files("pages",
            ignore.case=TRUE)
 sapply(page_files, source)
 
-# 
+# Main UI
 ui <- navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
-    tabPanel("Exploratory Data Analysis", eda_point_map_ui("eda_point_map")),
+    tabPanel("Exploratory Data Analysis", eda_ui("eda_point_map")),
     tabPanel("Kernel Density", kde_ui),
     tabPanel("Spatial Cluster", spatial_cluster_ui("spatial_cluster_plot")),
     tabPanel("Spatiotemporal", spatiotemporal_ui),
     inverse=T
 )
 
-# Define server logic required to draw a histogram
-server <- function(input, output) {
+# Main Server
+server <- function(input, output, session) {
+  # --------------------
+  # EDA
+  # --------------------
+  observe(eda_change_date_slider(input, session))
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
   output$spatial_cluster_plot <- renderTmap({spatial_cluster_server(input)})
 }
