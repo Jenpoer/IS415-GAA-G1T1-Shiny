@@ -24,6 +24,10 @@ names(hotspot_data) <- list.files("data/points") %>%
 # ----------------------
 # Utility Functions
 # ----------------------
+
+#
+# Functions for getting data by administrative division
+#
 get_city_boundary <- function(province, city_name) {
   return(boundary_data[[province]] %>% filter(city == city_name))
 }
@@ -36,26 +40,56 @@ get_sub_district_boundary <- function(province, sub_district_name) {
   return(boundary_data[[province]] %>% filter(sub_district == sub_district_name))
 }
 
-get_city_hotspots <- function(province, city) {
-  boundary <- get_city_boundary(province, city)
-  hotspots <- hotspot_data[[province]]
+get_city_hotspots <- function(province, city_name) {
+  hotspots <- hotspot_data[[province]] %>% 
+    filter(city == city_name)
   
-  return(st_intersection(boundary, hotspots) %>%
-           select(names(hotspots)))
+  return(hotspots)
 }
 
-get_district_hotspots <- function(province, district) {
-  boundary <- get_district_boundary(province, district)
-  hotspots <- hotspot_data[[province]]
+get_district_hotspots <- function(province, district_name) {
+  hotspots <- hotspot_data[[province]] %>% 
+    filter(district == district_name)
   
-  return(st_intersection(boundary, hotspots) %>%
-           select(names(hotspots)))
+  return(hotspots)
 }
 
-get_sub_district_hotspots <- function(province, sub_district) {
-  boundary <- get_district_boundary(province, sub_district)
-  hotspots <- hotspot_data[[province]]
+get_sub_district_hotspots <- function(province, sub_district_name) {
+  hotspots <- hotspot_data[[province]] %>%
+    filter(sub_district == sub_district_name)
   
-  return(st_intersection(boundary, hotspots) %>%
-           select(names(hotspots)))
+  return(hotspots)
 }
+
+#
+# Functions for converting data into Spatstat objects
+#
+
+convert_polygon_to_owin <- function(st_polygon_df) {
+  owin <- st_polygon_df %>%
+    as_Spatial() %>%
+    as("SpatialPolygons") %>%
+    as("owin")
+  
+  return(owin)
+}
+
+convert_points_to_ppp <- function(st_points_df) {
+  ppp <- st_points_df %>%
+    as_Spatial() %>%
+    as("SpatialPoints") %>%
+    as("ppp")
+  
+  return(ppp)
+}
+
+convert_to_spatstat <- function(st_polygon_df, st_points_df) {
+  owin <- convert_points_to_ppp(st_polygon_df)
+  ppp <- convert_points_to_ppp(st_points_df)
+  
+  return(ppp[owin])
+}
+
+# How to call the function:
+# Province level: convert_to_spatstat(boundary_data[[province]], hotspot_data[[province]])
+# Everything else: convert_to_spatstat(get_city_boundary(province, city), get_city_hotspots(province, city))
