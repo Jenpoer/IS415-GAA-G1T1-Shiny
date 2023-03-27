@@ -33,6 +33,7 @@ server <- function(input, output, session) {
   # --------------------
   observe(eda_refresh_inputs(input, session))
   observe(eda_refresh_district(input, session))
+  observe(eda_refresh_sub_district(input, session))
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
 }
 
