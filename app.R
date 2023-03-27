@@ -33,6 +33,11 @@ server <- function(input, output, session) {
   # --------------------
   observe(eda_change_date_slider(input, session))
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
+  
+  # --------------------
+  # Spatial Cluster
+  # --------------------
+  observe(spatial_cluster_change_inputs(input, session))
   output$spatial_cluster_plot <- renderTmap({spatial_cluster_server(input)})
 }
 
