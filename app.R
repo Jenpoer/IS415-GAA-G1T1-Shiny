@@ -38,7 +38,7 @@ server <- function(input, output, session) {
   # --------------------
   # Spatial Cluster
   # --------------------
-  observe(spatial_cluster_change_inputs(input, session))
+  observe(sc_refresh_city_inputs(input, session))
   output$spatial_cluster_plot <- renderTmap({spatial_cluster_server(input)})
 }
 
