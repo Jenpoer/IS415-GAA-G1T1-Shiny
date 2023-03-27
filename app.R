@@ -31,7 +31,8 @@ server <- function(input, output, session) {
   # --------------------
   # EDA
   # --------------------
-  observe(eda_change_date_slider(input, session))
+  observe(eda_refresh_inputs(input, session))
+  observe(eda_refresh_district(input, session))
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
   
   # --------------------
