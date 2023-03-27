@@ -1,13 +1,15 @@
-pacman::p_load(tidyverse, sf, tmap, shinycssloaders)
+pacman::p_load(tidyverse, sf, tmap, shinycssloaders, shinyjs)
 source("data_manager.R")
 
-default_hotspots <- hotspot_data[["aceh"]]
+eda_data_current <- hotspot_data[["aceh"]]
 
 eda_ui <- function(point_map) {
   return(
     tabsetPanel(
       tabPanel(title="Point Map", 
-               eda_point_map_ui(point_map))
+               eda_point_map_ui(point_map)),
+      tabPanel(title="Time Series", 
+               div())
     )
   )
 }
@@ -16,19 +18,34 @@ eda_point_map_ui <- function(map) {
   return(
     div(
       sidebarPanel(
+        useShinyjs(),
         selectInput(
-          "province",
+          "eda_province",
           "Province",
           choices=names(hotspot_data)
         ),
-        sliderInput("DatesMerge",
+        selectInput(
+          "eda_city",
+          "Kabupaten",
+          choices=c("All", unique(eda_data_current$city)),
+          selected="All"
+        ),
+        disabled(
+          selectInput(
+            "eda_district",
+            "Kecamatan",
+            choices=c("All", unique(eda_data_current$district)),
+            selected="All"
+          )
+        ),
+        sliderInput("eda_date_range",
                   "Dates:",
-                  min = min(default_hotspots$date),
-                  max = max(default_hotspots$date),
+                  min = min(eda_data_current$date),
+                  max = max(eda_data_current$date),
                   value = c(
-                    min(default_hotspots$date),
-                    min(default_hotspots$date) + 
-                      floor((max(default_hotspots$date)-min(default_hotspots$date))/2)
+                    min(eda_data_current$date),
+                    min(eda_data_current$date) + 
+                      floor((max(eda_data_current$date)-min(eda_data_current$date))/2)
                   )
         )
       ),
@@ -39,30 +56,62 @@ eda_point_map_ui <- function(map) {
   )
 }
 
-eda_change_date_slider <- function(input, session) {
+eda_refresh_inputs <- function(input, session) {
   return ({
-    input$province
-    updateSliderInput(session, "DatesMerge", 
-                      min = min(hotspot_data[[input$province]]$date),
-                      max = max(hotspot_data[[input$province]]$date),
+    input$eda_province
+    updateSelectInput(session, "eda_city",
+                      choices=c("All", unique(hotspot_data[[input$eda_province]]$city)),
+                      selected="All")
+    updateSliderInput(session, "eda_date_range",
+                      min = min(hotspot_data[[input$eda_province]]$date),
+                      max = max(hotspot_data[[input$eda_province]]$date),
                       value = c(
-                        min(hotspot_data[[input$province]]$date),
-                        min(hotspot_data[[input$province]]$date) + 
-                          floor((max(hotspot_data[[input$province]]$date)-
-                                   min(hotspot_data[[input$province]]$date))/2)
+                        min(hotspot_data[[input$eda_province]]$date),
+                        min(hotspot_data[[input$eda_province]]$date) +
+                          floor((max(hotspot_data[[input$eda_province]]$date)-
+                                   min(hotspot_data[[input$eda_province]]$date))/2)
                       ))
+  })
+}
+
+eda_refresh_district <- function(input, session) {
+  return ({
+    input$eda_city
+    updateSelectInput(session, "eda_district",
+                      choices=c("All", unique(get_city_hotspots(input$eda_province, 
+                                                                input$eda_city)$district)),
+                      selected="All")
+    if(input$eda_city != "All") {
+      enable("eda_district")
+      
+    } else {
+      disable("eda_district")
+    }
   })
 }
 
 
 eda_point_map_server <- function(input) {
-  data_current <- hotspot_data[[input$province]] %>%
-    filter(`date` >= input$DatesMerge[1], 
-           `date` <= input$DatesMerge[2]) %>%
+  eda_eda_data_current <<- hotspot_data[[input$eda_province]]
+  if(input$eda_city != "All") {
+    eda_data_current <<- get_city_hotspots(input$eda_province, input$eda_city)
+    print(nrow(eda_data_current))
+    if(input$eda_district != "All") {
+      print(input$eda_district)
+      eda_data_current <<- get_district_hotspots(input$eda_province, input$eda_district)
+    }
+  }
+  
+  
+  eda_data_current <<- eda_data_current %>% 
+    filter(`date` >= input$eda_date_range[1], 
+           `date` <= input$eda_date_range[2]) %>%
     mutate(`color` = ifelse(`date` < max(date), 'pink', 'red'))
   
+  
+  
   return(
-    tm_shape(data_current) +
+    tm_shape(eda_data_current) +
     tm_dots(col="color", alpha=0.4)) +
     tm_view(set.zoom.limits=c(11,15))
 }
