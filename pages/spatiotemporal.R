@@ -383,9 +383,13 @@ st_gi_star_server <- function(input) {
     df_nb <- spacetime_cube %>%
       activate("geometry") %>% # activate geometry context
       mutate(nb = include_self(st_contiguity(geometry)),
-             wt = st_inverse_distance(nb, geometry,
-                                      scale = 1,
-                                      alpha = 1),
+             wt = 
+               case_when(
+                 input$st_mk_contiguity_weights == "Row Standardised" ~ st_weights(nb, style = "W"),
+                 input$st_mk_contiguity_weights == "Inverse Distance" ~  st_inverse_distance(nb, geometry,
+                                                                                             scale = 1,
+                                                                                             alpha = 1)
+              ),
              .before = 1) %>%  # create neighbour and weight column
       set_wts("wt") %>%
       set_nbs("nb")
@@ -441,6 +445,13 @@ st_ehsa_server <- function(input) {
     spacetime_cube <- st_spacetime_server(input$st_province_2,
                                           input$st_city_2,
                                           input$st_year_2)
+    
+    if(!is_spacetime_cube(spacetime_cube)) {
+      shinyalert("Something's Burning", 
+                 "Unaable to perform analysis on this data. Please select other parameters.", 
+                 type = "error")
+      stop()
+    }
     
     ehsa <- emerging_hotspot_analysis(
       x = spacetime_cube,
