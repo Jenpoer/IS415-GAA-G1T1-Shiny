@@ -24,7 +24,8 @@ ui <- navbarPage(
     tabPanel("Spatial Cluster", spatial_cluster_ui),
     tabPanel("Spatiotemporal", spatiotemporal_ui("st_mann_kendall_plot", 
                                                  "st_mann_kendall_table",
-                                                 "st_ehsa_choropleth")),
+                                                 "st_ehsa_choropleth",
+                                                 "st_stik_plot")),
     inverse=T
 )
 
@@ -45,10 +46,15 @@ server <- function(input, output, session) {
   observe(st_refresh_district(input, session))
   observe(st_refresh_sub_district(input, session))
   observe(st_refresh_inputs_2(input, session))
+  observe(st_refresh_inputs_3(input, session))
+  observe(st_refresh_district_3(input, session))
+  observe(st_refresh_sub_district_3(input, session))
+  observe(st_refresh_persp_plot_input_3(input, session))
   st_gi_star <- st_gi_star_server(input)
   output$st_mann_kendall_plot <- st_gi_star_plot_server(st_gi_star)
   output$st_mann_kendall_table <- st_mann_kendall_server(st_gi_star)
   output$st_ehsa_choropleth <- st_ehsa_server(input)
+  output$st_stik_plot <- st_stik_server(input)
 }
 
 # Run the application 

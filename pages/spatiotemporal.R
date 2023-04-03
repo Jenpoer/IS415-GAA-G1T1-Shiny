@@ -1,17 +1,19 @@
-pacman::p_load(tidyverse, sf, tmap, shinycssloaders, shinyjs, sfdep)
+pacman::p_load(tidyverse, sf, tmap, shinycssloaders, shinyjs, sfdep, stpp, shinyalert, grDevices)
 source("data_manager.R")
 
 st_data_current <- hotspot_data[["aceh"]]
 
 # Main UI
 
-spatiotemporal_ui <- function(mk_plot, mk_table, ehsa_map) {
+spatiotemporal_ui <- function(mk_plot, mk_table, ehsa_map, stik_plot) {
   return(
     tabsetPanel(
       tabPanel(title="Mann Kendall", 
                st_mann_kendall_ui(mk_plot, mk_table)),
       tabPanel(title="Emerging Hotspot Analysis", 
-               st_ehsa_ui(ehsa_map))
+               st_ehsa_ui(ehsa_map)),
+      tabPanel(title="Space-Time K-Function", 
+               st_stik_ui(stik_plot))
     )
   )
 }
@@ -126,6 +128,82 @@ st_ehsa_ui <- function(map) {
   )
 }
 
+st_stik_ui <- function(plot_name) {
+  return(
+    div(
+      sidebarPanel(
+        useShinyjs(),
+        selectInput(
+          "st_province_3",
+          "Province",
+          choices=names(hotspot_data)
+        ),
+        selectInput(
+          "st_city_3",
+          "City/Regency",
+          choices=c("", unique(st_data_current$city))
+        ),
+        disabled(
+          selectInput(
+            "st_district_3",
+            "District",
+            choices=c("", unique(st_data_current$district))
+          )
+        ),
+        disabled(
+          selectInput(
+            "st_sub_district_3",
+            "Sub-District",
+            choices=c("", unique(st_data_current$sub_district))
+          )
+        ),
+        selectInput(
+          "st_year_3",
+          "Year",
+          choices=c("2015",
+                    "2016",
+                    "2017",
+                    "2018",
+                    "2019")
+        ),
+        actionButton("st_submit_3", "Submit")
+      ),
+      mainPanel(
+        withSpinner(plotOutput(plot_name), type=1),
+        fluidRow(
+          useShinyjs(),
+          column(4, 
+                 selectInput(
+                  "st_stik_plot_type",
+                  "Plot Type",
+                  choices=c("Contour",
+                            "Image",
+                            "Perspective")
+                )
+          ),
+          column(4, 
+                 disabled(sliderInput(
+                   "st_persp_theta",
+                   "Azimuthal Angle",
+                   min = 0,
+                   max = 360,
+                   value = 0
+                 ))
+          ),
+          column(4, 
+                 disabled(sliderInput(
+                   "st_persp_phi",
+                   "Colatitude",
+                   min = 0,
+                   max = 360,
+                   value = 15
+                 ))
+          ))
+      )
+    )
+  )
+}
+
 ##########################
 # Refresh Inputs 1
 ##########################
@@ -185,6 +263,63 @@ st_refresh_inputs_2 <- function(input, session) {
 }
 
 ##########################
+# Refresh Inputs 3
+##########################
+st_refresh_inputs_3 <- function(input, session) {
+  return ({
+    input$st_province_3
+    updateSelectInput(session, "st_city_3",
+                      choices=c("", unique(hotspot_data[[input$st_province_3]]$city)),
+                      selected="")
+  })
+}
+
+st_refresh_district_3 <- function(input, session) {
+  return ({
+    input$st_city_3
+    updateSelectInput(session, "st_district_3",
+                      choices=c("", unique(get_city_hotspots(input$st_province_3, 
+                                                             input$st_city_3)$district)),
+                      selected="")
+    if(input$st_city_3 != "") {
+      enable("st_district_3")
+      
+    } else {
+      disable("st_district_3")
+    }
+  })
+}
+
+st_refresh_sub_district_3 <- function(input, session) {
+  return ({
+    input$st_district_3
+    updateSelectInput(session, "st_sub_district_3",
+                      choices=c("", unique(get_district_hotspots(input$st_province_3, 
+                                                                 input$st_district_3)$sub_district)),
+                      selected="")
+    if(input$st_district_3 != "") {
+      enable("st_sub_district_3")
+      
+    } else {
+      disable("st_sub_district_3")
+    }
+  })
+}
+
+st_refresh_persp_plot_input_3 <- function(input, session) {
+  return ({
+    input$st_stik_plot_type
+    if(input$st_stik_plot_type == "Perspective") {
+      enable("st_persp_theta")
+      enable("st_persp_phi")
+    } else {
+      disable("st_persp_theta")
+      disable("st_persp_phi")
+    }
+  })
+}
+
+##########################
 # Utility Server Functions
 ##########################
 st_spacetime_server <- function(province, city, year) {
@@ -228,6 +363,8 @@ st_spacetime_server <- function(province, city, year) {
   
   spacetime_cube <- boundary_aggregate %>%
     as_spacetime(.loc_col="location", .time_col="month")
+  
+  print(is_spacetime_cube(spacetime_cube))
   
   return(spacetime_cube)
 }
@@ -335,4 +472,130 @@ st_ehsa_server <- function(input) {
     }))
 }
   
+##########################
+# STIK Output
+##########################
+st_stik_server <- function(input) {
+  st_stik <- eventReactive(input$st_submit_3, {
+    validate(
+      need(input$st_city_3 != "", "Please select a city"),
+      need(input$st_district_3 != "", "Please select a district"),
+      need(input$st_sub_district_3 != "", "Please select a sub-district")
+    )
+    st_data_current <<- get_sub_district_hotspots(input$st_province_3,
+                                          input$st_sub_district_3) %>%
+      filter(grepl(input$st_year_3, date))
+    
+    st_3d_points <- st_data_current %>%
+      cbind(st_coordinates(.)) %>%
+      as_tibble() %>%
+      dplyr::select(`X`, `Y`,`date`) %>%
+      rename(`t` = `date`,
+             `x` = `X`,
+             `y` = `Y`) %>%
+      as.3dpoints()
+    
+    boundary <- get_sub_district_boundary(input$st_province_3, input$st_sub_district_3)
+    
+    st_region_matrix <- st_coordinates(boundary)[,c("X","Y")]
+    
+    if(is.null(dim(st_3d_points))) {
+      shinyalert("Something's Burning", "Please select another sub-district.", type = "error")
+      stop()
+    }
+    
+    stik <- STIKhat(xyt=st_3d_points, 
+                    s.region = st_region_matrix)
+    
+    return(stik)
+  })
   
+  return(renderPlot({
+    K <- st_stik()
+    if(input$st_stik_plot_type == "Contour") {
+      st_plot_K_contour(K)
+    } else if(input$st_stik_plot_type == "Perspective") {
+      st_plot_K_persp(K, theta=input$st_persp_theta, phi=input$st_persp_phi)
+    } else if(input$st_stik_plot_type == "Image") {
+      st_plot_K_image(K)
+    }
+  }))
+}
+
+# ADAPTED FROM stpp's plotK's source code
+
+# Plot contour
+st_plot_K_contour <- function(K, n=15) {
+  par(cex.lab=1.5,cex.axis=1.5,font=2,plt=c(0,1,0,1),lwd=1,mar=c(0.5,0.5,2.5,0.5),las=1)
+  k <- K$Khat - K$Ktheo
+  M <- max(abs(range(k)))
+  M <- pretty(c(-M,M),n=n)
+  colo <- colorRampPalette(c("red", "white", "blue"))
+  par(fig=c(0.1,0.825,0.1,1))
+  contour(K$dist, K$times, k, labcex=1.5,levels=M,drawlabels=F,col=colo(n),zlim=range(M),axes=F)
+  box(lwd=2)
+
+  at <- axTicks(1)
+  axis(1,at=at[1:length(at)],labels=at[1:length(at)])
+  at <- axTicks(2)
+  axis(2,at=at[1:length(at)],labels=at[1:length(at)])
+  
+  titl <- expression(hat(K)[ST] * group("(",list(u,v),")") - 2*pi*u^2*v) 
+  title(titl,cex.main=1.5,cex.lab=1, outer=TRUE,line=-1, xlab="Distances (m)", ylab="Times")
+
+  mini <- findInterval(x=min(k,na.rm=TRUE),vec=M)
+  maxi <- findInterval(x=max(k,na.rm=TRUE),vec=M)
+  
+  par(fig=c(0,1,0.1,1))
+  legend("right",fill=colo(n)[maxi:mini],legend=M[maxi:mini],horiz=F,bty="n")
+}
+
+st_plot_K_persp <- function(K, n=15, theta=0, phi=15) {
+  k <- K$Khat - K$Ktheo
+  M <- max(abs(range(k)))
+  M <- pretty(c(-M,M),n=n)
+  colo <- colorRampPalette(c("red", "white", "blue"))
+  COL <- colo(n)
+  
+  mask <- matrix(0,ncol=length(K$times),nrow=length(K$dist))
+  for(i in 1:length(K$dist)){ for(j in 1:length(K$times)){mask[i,j] <- COL[findInterval(x=k[i,j],vec=M)]}}
+  COL <- mask[1:(length(K$dist)-1),1:(length(K$times)-1)]
+  
+  par(cex.lab=2,cex.axis=1.5,font=2,lwd=1,mar=c(0,0,3,0))
+  par(fig=c(0,0.825,0,1))
+  persp(x=K$dist, y=K$times, z=k, xlab="u",ylab="v", zlab="",expand=1, col=COL, theta = theta, phi = phi)
+  
+  titl <- expression(hat(K)[ST] * group("(",list(u,v),")") - 2*pi*u^2*v) 
+  title(titl,cex.main=1.5,outer=TRUE,line=-1)
+  
+  par(fig=c(0.825,1,0,1))
+  mini <- findInterval(x=min(k,na.rm=TRUE),vec=M)
+  maxi <- findInterval(x=max(k,na.rm=TRUE),vec=M)
+  legend("right",fill=colo(n)[maxi:mini],legend=M[maxi:mini],horiz=F,bty="n")
+}
+
+st_plot_K_image <- function(K, n=15) {
+  k <- K$Khat - K$Ktheo
+  M <- max(abs(range(k)))
+  M <- pretty(c(-M,M),n=n)
+  colo <- colorRampPalette(c("red", "white", "blue"))
+  COL <- colo(n)
+  
+  par(cex.lab=1.5,cex.axis=1.5,font=2,lwd=1,plt=c(0,1,0,1),mar=c(0.5,0.5,2.5,0.5),las=1)
+  par(fig=c(0.1,0.825,0.1,1))
+  image(K$dist, K$times, k, col=colo(n),zlim=range(M),axes=F,xlab="",ylab="")
+  box(lwd=2)
+  
+  at <- axTicks(1)
+  axis(1,at=at[1:length(at)],labels=at[1:length(at)])
+  at <- axTicks(2)
+  axis(2,at=at[1:length(at)],labels=at[1:length(at)])
+  
+  titl <- expression(hat(K)[ST] * group("(",list(u,v),")") - 2*pi*u^2*v) 
+  title(titl,cex.main=1.5,outer=TRUE,line=-1)
+  
+  par(fig=c(0,1,0.1,1))
+  mini <- findInterval(x=min(k,na.rm=TRUE),vec=M)
+  maxi <- findInterval(x=max(k,na.rm=TRUE),vec=M)
+  legend("right",fill=colo(n)[maxi:mini],legend=M[maxi:mini],horiz=F,bty="n")
+}
