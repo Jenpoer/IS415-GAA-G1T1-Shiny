@@ -7,7 +7,7 @@
 #    http://shiny.rstudio.com/
 #
 
-pacman::p_load(shiny,sf, tidyverse, tmap, maptools, raster, spatstat, sfdep)
+pacman::p_load(shiny)
 
 # Load all page files
 page_files <- list.files("pages", 

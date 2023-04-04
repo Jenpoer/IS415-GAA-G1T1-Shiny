@@ -1,4 +1,5 @@
 #load data
+pacman::p_load(sf, tidyverse, tmap, maptools, raster, spatstat, sfdep)
 kde_boundary <- boundary_data[["aceh"]]
 kde_hp <- hotspot_data[["aceh"]]
 
