@@ -7,7 +7,7 @@
 #    http://shiny.rstudio.com/
 #
 
-pacman::p_load(shiny)
+pacman::p_load(shiny,sf, tidyverse, tmap, maptools, raster, spatstat, sfdep)
 
 # Load all page files
 page_files <- list.files("pages", 
@@ -20,7 +20,7 @@ ui <- navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
     tabPanel("Exploratory Data Analysis", eda_ui("eda_point_map")),
-    tabPanel("Kernel Density", kde_ui),
+    tabPanel("Kernel Density", kde_ui("KDE_map")),
     tabPanel("Spatial Cluster", spatial_cluster_ui),
     tabPanel("Spatiotemporal", spatiotemporal_ui),
     inverse=T
@@ -35,6 +35,8 @@ server <- function(input, output, session) {
   observe(eda_refresh_district(input, session))
   observe(eda_refresh_sub_district(input, session))
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
+  output$KDE_map <- renderPlot({kde_server(input)})
+  observe(kde_refresh_inputs(input, session))
 }
 
 # Run the application 
