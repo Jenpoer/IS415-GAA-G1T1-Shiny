@@ -40,7 +40,13 @@ server <- function(input, output, session) {
   # Spatial Cluster
   # --------------------
   observe(sc_refresh_city_inputs(input, session))
-  output$spatial_cluster_plot <- renderTmap({spatial_cluster_server(input)})
+  observe(sc_refresh_correction_inputs(input, session))
+  output$spatial_cluster_plot <- spatial_cluster_server(input)
+  output$sc_location_text <- sc_param_location_server(input)
+  output$sc_date_text <- sc_param_date_server(input)
+  output$sc_nrow_text <- sc_param_nrow_server(input)
+  output$sc_function_text <- sc_param_function_server(input)
+  output$sc_sig_level_text <- sc_param_sig_level_server(input)
 }
 
 # Run the application 

@@ -66,11 +66,14 @@ get_sub_district_hotspots <- function(province, sub_district_name) {
 #
 
 convert_polygon_to_owin <- function(st_polygon_df) {
+  print("Polygons: -------------")
+  print(st_polygon_df)
   owin <- st_polygon_df %>%
     as_Spatial() %>%
     as("SpatialPolygons") %>%
     as("owin")
-  
+  print("Owin: -------------")
+  print(owin)
   return(owin)
 }
 
@@ -84,7 +87,7 @@ convert_points_to_ppp <- function(st_points_df) {
 }
 
 convert_to_spatstat <- function(st_polygon_df, st_points_df) {
-  owin <- convert_points_to_ppp(st_polygon_df)
+  owin <- convert_polygon_to_owin(st_polygon_df)
   ppp <- convert_points_to_ppp(st_points_df)
   
   return(ppp[owin])
