@@ -17,7 +17,7 @@ K_L_correction_options <- list("none", "border", "bord.modif", "isotropic",
 # -----------------------
 spatial_cluster_ui <- function(plot) {
   return(div(
-    titlePanel("Spatial Cluster"),
+    titlePanel("Statistical Test for Spatial Clustering"),
     sidebarLayout(
       sidebarPanel(
         "Selection Options",
@@ -52,7 +52,7 @@ spatial_cluster_ui <- function(plot) {
                       "Oct" = "10", "Nov" = "11", "Dec" = "12"),
           selected="Jan"
         ),
-        "Function Options",
+        "Statistical Test Options",
         # function type
         selectInput(
           inputId="sc_function_type",
@@ -82,6 +82,7 @@ spatial_cluster_ui <- function(plot) {
         withSpinner(plotOutput(plot), type=1),
         tabsetPanel(type = "tabs",
                     tabPanel("Overview", sc_overview()),
+                    tabPanel("Inputs", sc_inputs_desc()),
                     tabPanel("F Function", sc_f_func_desc()),
                     tabPanel("G Function", sc_g_func_desc()),
                     tabPanel("K Function", sc_k_func_desc()),
@@ -118,9 +119,10 @@ sc_overview <- function() {
     h4("How it Works"),
     p("When carrying out our statistical test, we must first create a hypothesis 
       to be tested. As such, let us form the hypotheses:"),
-    p(HTML("H0, the Null Hypothesis: The distribution of forest fires in this region 
-      is random.\nH1, the Alternative Hypothesis: The distribution of forest fires in this 
-      region is not random."),align = "center"),
+    p("H0, the Null Hypothesis: The distribution of forest fires in this region 
+      is random.",align = "center"),
+    p("H1, the Alternative Hypothesis: The distribution of forest fires in this 
+      region is not random.",align = "center"),
     p("We will then use the selected function to obtain our estimate from our observed
       data, as represented by the solid line in the plot."),
     p("In order to determine if this observed value is statistically significant, we 
@@ -140,18 +142,43 @@ sc_overview <- function() {
   ))   
 }
 
+sc_inputs_desc <- function() {
+  return(div(
+    h4("Province"),
+    p("Province that the selected City belongs to. Changing this option will also 
+      update the City options."),
+    h4("City"),
+    p("City to select the fire hotspot data from."),
+    h4("Year"),
+    p("Year to select fire hotspot data from."),
+    h4("Month"),
+    p("Month of the corresponding year to select fire hotspot data from."),
+    h4("Function Type"),
+    p("Function to be used for statistical test."),
+    h4("Number of Simulations"),
+    p("Number of simulations used in Monte Carlo Simulation. Affects the significant level, 
+      calulated via: alpha = 2/(1 + num_simulations)"),
+    h4("Correction Method"),
+    p("Edge correction to be applied to the function in order to reduce bias.")
+  ))
+}
+
 sc_f_func_desc <- function() {
   return(div(
     h4("Description"),
     p(HTML("The F Function, also known as the Empty Space function, measures the distribution 
       of  distances from an <b>arbitrary location</b> (not necessarily a point) to its nearest 
-      observed point.")),
+      observed point. ")),
+    p(HTML(paste0("For more information, please refer to the ", 
+      a(href = 'https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/Fest', 
+      "official documentation"), "."))),
     h4("Interpretation"),
     p("If the observed F Function follows a concave upwards curve (increases slowly 
       at first, then more rapidly at longer distances), we can say that the observed 
       fires follow a clustered pattern. However, if the observed F function follows 
       a concave downwards curve (increases rapidly at first, then more slowly at longer 
-      distances), we can say that the observed fires follow a dispersed pattern.")
+      distances), we can say that the observed fires follow a dispersed pattern."),
+    p('(Please refer to "Overview" tab for interpretation of Statistical Test Result)')
   ))
 }
 
@@ -160,12 +187,16 @@ sc_g_func_desc <- function() {
     h4("Description"),
     p(HTML("The G Function measures the distribution of distances from an <b>arbitrary point</b> 
       to its nearest neighbour.")),
+    p(HTML(paste0("For more information, please refer to the ", 
+                  a(href = 'https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/Gest', 
+                    "official documentation"), "."))),
     h4("Interpretation"),
     p("When the observed G Function value is greater than the estimate (lies 
       above the theoretical), we can say that the observed fires follow a clustered 
-      pattern. Generally, this lies below the theoretical estimate On the other hand, 
+      pattern. Generally, this lies below the theoretical estimate. On the other hand, 
       when the observed value is less than the estimate, we can say the observed fires 
-      follow a dispersed pattern. Generally, this lies above the theoretical estimate")
+      follow a dispersed pattern. Generally, this lies above the theoretical estimate."),
+    p('(Please refer to "Overview" tab for interpretation of Statistical Test Result)')
   ))
 }
 
@@ -174,18 +205,34 @@ sc_k_func_desc <- function() {
     h4("Description"),
     p("Ripley's K Function attempts to combat the limitation of the nearest neighbours 
       approach of using only the nearest distance by using an estimate of spatial dependence 
-      instead. "),
-    h4("Interpretation"),
-    p("If the function lies above the envolope, the fires can be said to be clustered. If the function lies below, we can say the fires are dispered, or regularly spread out.")
+      instead. This is done by taking a measure of how many events lie about each points 
+      at varying radius length, and computing this calculation for all point events."),
+    p(HTML(paste0("For more information, please refer to the ", 
+                  a(href = 'https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/Kest', 
+                    "official documentation"), "."))),
+    h4("Interpretation of Statistical Test Result"),
+    p("When the observed K Function value is greater than, or lies above the theotetical, we can say 
+      that the forest fire hotspots are clustered and this radius. However, when the 
+      observer value lies below the theotetical value, we can assume that the forest fires 
+      are dispersed at this radius."),
+    p('(Please refer to "Overview" tab for interpretation of Statistical Test Result)')
   ))
 }
 
 sc_l_func_desc <- function() {
   return(div(
     h4("Description"),
-    p("desc"),
+    p("The L function is the normalised version of the K function, where we take 
+      the K function divided by pi, the squared rooted to get the corresponding L function value."),
+    p(HTML(paste0("For more information, please refer to the ", 
+                  a(href = 'https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/Lest', 
+                    "official documentation"), "."))),
     h4("Interpretation"),
-    p("If the function lies above the envolope, the fires can be said to be clustered. If the function lies below, we can say the fires are dispered, or regularly spread out.")
+    p("When the L value lies above the theoretical value, the we can say that the forest 
+      fire hotspots for this region are spatially clustered at that particular distance. 
+      On the other hand, when the L value lies below the theoretical value, the forest fire 
+      hotspots are spatially dispersed at this distance."),
+    p('(Please refer to "Overview" tab for interpretation of Statistical Test Result)')
   ))
 }
 
