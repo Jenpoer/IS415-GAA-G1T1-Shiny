@@ -66,11 +66,14 @@ get_sub_district_hotspots <- function(province, sub_district_name) {
 #
 
 convert_polygon_to_owin <- function(st_polygon_df) {
+  print("Polygons: -------------")
+  print(st_polygon_df)
   owin <- st_polygon_df %>%
     as_Spatial() %>%
     as("SpatialPolygons") %>%
     as("owin")
-  
+  print("Owin: -------------")
+  print(owin)
   return(owin)
 }
 
