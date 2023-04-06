@@ -19,8 +19,8 @@ sapply(page_files, source)
 ui <- navbarPage(
     title="FINE",
     tabPanel("Home", home_ui),
-    tabPanel("Exploratory Data Analysis", eda_ui("eda_point_map")),
-    tabPanel("Kernel Density", kde_ui),
+    tabPanel("Exploratory Data Analysis", eda_ui("eda_point_map", "eda_time_series")),
+    tabPanel("Kernel Density", kde_ui("KDE_map")),
     tabPanel("Spatial Cluster", spatial_cluster_ui),
     tabPanel("Spatiotemporal", spatiotemporal_ui("st_mann_kendall_plot", 
                                                  "st_mann_kendall_table",
@@ -37,7 +37,18 @@ server <- function(input, output, session) {
   observe(eda_refresh_inputs(input, session))
   observe(eda_refresh_district(input, session))
   observe(eda_refresh_sub_district(input, session))
+  observe(eda_refresh_inputs_2(input, session))
+  observe(eda_refresh_district_2(input, session))
+  observe(eda_refresh_sub_district_2(input, session))
   output$eda_point_map <- renderTmap({eda_point_map_server(input)})
+  output$eda_time_series <- renderPlot({eda_time_series_server(input)})
+  output$eda_point_map <- renderTmap({eda_point_map_server(input)})
+  
+  # --------------------
+  # KDE
+  # --------------------
+  output$KDE_map <- renderPlot({kde_server(input)})
+  observe(kde_refresh_inputs(input, session))
   
   # --------------------
   # Spatiotemporal
