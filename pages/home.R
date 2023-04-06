@@ -20,6 +20,29 @@ home_ui <- div(
     manipulate and analyze spatial forest fire hotspot data. This interactive and 
     consolidated platform makes it easier for not only ourselves, but others with 
     little to no GIS knowledge to access and analyse this forest fire data."),
+  h3("Dataset Information"),
+  p("This web application uses fire hotspot data from Sumatra, Indonesia between 2015 
+    and 2019 (inclusive). This study period and area was chosen as it was during this 
+    range of years that Singapore most recently suffered from significant haze, mostly 
+    originating from forest fires in Sumatra."),
+  p(HTML(paste0("The ", 
+                a(href = 'https://staklim-riau.bmkg.go.id/infografis/detail/aTJhd0tCU1QxM2Z2dng5Q0phRTZFUT09', 
+                  "Indonesian Meteorology, Climatology, and Geophysical Agency (2023)"),
+                " defines hotspots as locations where the temperature detected by monitoring 
+                satellites is higher than surrounding areas. As it is measured in a pre-defined 
+                area, it does not directly correspond to the number of forest fire occurrences. 
+                However, it still functions as a good indicator of forest fire incidents 
+                and an estimation of the scale of the incident, and as such we found this 
+                hotspot data to be suitable to be used in our Spatial Point Pattern Analysis tool."))),
+  p("As such, the data for this webapp is equipped with is as follows:"),
+  tags$ul(
+    tags$li(HTML(paste0("Forest Fire Hotspot Data Set (2015-2019, Sumatra), from ", 
+                        a(href = 'https://sipongi.menlhk.go.id/', 
+                          "SiPongi+"), "."))), 
+    tags$li(HTML(paste0("Sumatra Administrative Boundaries (2019), from ", 
+                        a(href = 'https://www.indonesia-geospasial.com/2020/04/download-shapefile-shp-batas-desa.html', 
+                          "Indonesia Geospasial"), ".")))
+  ),
   h3("Features"),
   h4("1. Exploratory Data Analysis"),
   p("Users can use this our Exploratory Data Analysis interface to interactively explore 
