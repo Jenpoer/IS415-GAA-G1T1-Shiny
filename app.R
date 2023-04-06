@@ -7,7 +7,7 @@
 #    http://shiny.rstudio.com/
 #
 
-pacman::p_load(shiny)
+pacman::p_load(shiny, fresh)
 
 # Load all page files
 page_files <- list.files("pages", 
@@ -15,9 +15,36 @@ page_files <- list.files("pages",
            ignore.case=TRUE)
 sapply(page_files, source)
 
+# Theme
+mytheme <- create_theme(
+  theme = "default",
+  bs_vars_color(
+    brand_primary = "#e9851d"
+  ),
+  bs_vars_navbar(
+    default_bg = "#364B45",
+    default_color = "#EDECED",
+    default_link_color = "#EDECED",
+    default_link_active_color = "#e9851d",
+    default_link_active_bg = "#142520",
+    default_link_hover_color = "#e9851d",
+    default_link_hover_bg = "#142520",
+  ),
+  bs_vars_button(
+    default_bg="#ffa826",
+    default_color = "#142520",
+    default_border="#ffa826"
+  ),
+  output_file = NULL
+)
+
 # Main UI
 ui <- navbarPage(
-    title="FINE",
+    header=use_theme(mytheme),
+    title=div(tags$img(src="logo.svg", alt="logo", width=65),
+              tags$style(HTML(".irs--shiny .irs-bar {background: #ffa826; border-color: #ffa826;}")),
+              tags$style(HTML(".irs--shiny .irs-single, .irs--shiny .irs-to, .irs--shiny .irs-from {background: #ffa826; color: #142520}"))),
+    windowTitle="FINE: Fire Incidents Explorer",
     tabPanel("Home", home_ui),
     tabPanel("Exploratory Data Analysis", eda_ui("eda_point_map", "eda_time_series")),
     tabPanel("Kernel Density", kde_ui("KDE_map")),
@@ -25,8 +52,7 @@ ui <- navbarPage(
     tabPanel("Spatiotemporal", spatiotemporal_ui("st_mann_kendall_plot", 
                                                  "st_mann_kendall_table",
                                                  "st_ehsa_choropleth",
-                                                 "st_stik_plot")),
-    inverse=T
+                                                 "st_stik_plot"))
 )
 
 # Main Server
@@ -49,6 +75,7 @@ server <- function(input, output, session) {
   # --------------------
   output$KDE_map <- renderPlot({kde_server(input)})
   observe(kde_refresh_inputs(input, session))
+  observe(kde_refresh_bw(input, session))
   
   # --------------------
   # Spatial Cluster

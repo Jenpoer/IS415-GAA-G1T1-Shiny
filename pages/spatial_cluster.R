@@ -1,9 +1,9 @@
 # Imports
-pacman::p_load(shiny, maptools, sf, raster, spatstat, tmap, shinyalert)
+pacman::p_load(shiny, maptools, sf, raster, spatstat, tmap, shinyalert, shinycssloaders, shinyjs)
 source("data_manager.R")
 
 # Set Default Data
-sc_plot_data <- hotspot_data[["aceh"]]
+sc_plot_data <- hotspot_data[["ACEH"]]
 
 # Constants
 F_correction_options <- list("none", "rs", "km", "cs", "best", "all")
@@ -16,16 +16,16 @@ K_L_correction_options <- list("none", "border", "bord.modif", "isotropic",
 # Main UI
 # -----------------------
 spatial_cluster_ui <- function(plot) {
-  return(div(
+  return(fluidPage(
     titlePanel("Statistical Test for Spatial Clustering"),
     sidebarLayout(
       sidebarPanel(
-        "Selection Options",
+        "Data Selection Options",
         selectInput(
           inputId="sc_province",
           label="Province",
           choices=names(hotspot_data),
-          selected="aceh"
+          selected="ACEH"
           ),
         selectInput(
           inputId="sc_city",
@@ -79,24 +79,26 @@ spatial_cluster_ui <- function(plot) {
       ),
       mainPanel(
         sc_params_summary(),
-        withSpinner(plotOutput(plot), type=1),
-        tabsetPanel(type = "tabs",
-                    tabPanel("Overview", sc_overview()),
-                    tabPanel("Inputs", sc_inputs_desc()),
-                    tabPanel("F Function", sc_f_func_desc()),
-                    tabPanel("G Function", sc_g_func_desc()),
-                    tabPanel("K Function", sc_k_func_desc()),
-                    tabPanel("L Function", sc_l_func_desc())
+        withSpinner(plotOutput(plot), type=1, color="#e9851d"),
         )
-      )
-  )))
+      ),
+    hr(),
+    tabsetPanel(type = "tabs",
+                tabPanel("Overview", sc_overview()),
+                tabPanel("Inputs", sc_inputs_desc()),
+                tabPanel("F Function", sc_f_func_desc()),
+                tabPanel("G Function", sc_g_func_desc()),
+                tabPanel("K Function", sc_k_func_desc()),
+                tabPanel("L Function", sc_l_func_desc())
+    )
+  ))
 }
 
 # -----------------------
 # Static UI
 # -----------------------
 sc_params_summary <- function() {
-  return(div(style = "border-style: solid; border-color: black; border-radius: 5px; padding-left:8px; padding-right:8px;", 
+  return(div(style = "border-style: solid; border-color: #364B45; border-radius: 5px; padding-left:8px; padding-right:8px;", 
              h4("Complete Spatial Randomness Test Parameters"),
              p(textOutput("sc_location_text")),
              p(textOutput("sc_date_text")),
