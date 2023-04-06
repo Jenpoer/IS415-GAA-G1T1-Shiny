@@ -31,6 +31,25 @@ kde_ui <- function(map){
           choices=c("2015", "2016", "2017", "2018", "2019"),
           selected="2015"
         ),
+        selectInput(
+          "kerMet",
+          "Kernel method",
+          choices=c("gaussian", "epanechnikov", "quartic", "disc"),
+          selected="gaussian"
+        ),
+        selectInput(
+          "bwMet",
+          "Bandwidth selection method",
+          choices=c("Automatic", "Custom"),
+          selected="Automatic"
+        ),
+        sliderInput("bwSel",
+                    "bandwidth selection:",
+                   min = 100, max = 1000,
+                    value = c(
+                      500
+                    )
+        ),
         ),
       
       mainPanel(withSpinner(plotOutput(map)), type = 1,
@@ -79,8 +98,18 @@ kde_server <- function(input){
   kde_ppp <- kde_ppp[kde_owin]
   kde_ppp.km <- rescale(kde_ppp, 1000, "km")
   bw <- bw.ppl(kde_ppp)
-  kde.bw <- density(kde_ppp.km, sigma=bw.ppl, edge=TRUE, kernel="gaussian")
-  gridded_kde_bw <- as.SpatialGridDataFrame.im(kde.bw)
+  # kde.bw <- density(kde_ppp.km, sigma=bw.ppl, edge=TRUE, kernel="gaussian")
+  
+  if (input$bwMet == "Custom"){
+    kde_bw_custom <- density(kde_ppp.km, sigma=(input$bwSel/1000), edge=TRUE, kernel=input$kerMet)
+    gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_custom)
+  }
+  else{
+    kde_bw_adaptive <- adaptive.density(kde_ppp.km, method="kernel")
+    gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_adaptive)
+  }
+  # gridded_kde_bw <- as.SpatialGridDataFrame.im(kde.bw)
+  # gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_custom)
   kde_bw_raster <- raster(gridded_kde_bw)
   projection(kde_bw_raster) <- CRS("+init=EPSG:23845 +units=km")
   kde_plot <- tm_shape(kde_bw_raster) + 
