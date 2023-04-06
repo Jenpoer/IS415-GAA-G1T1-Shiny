@@ -17,65 +17,73 @@ eda_ui <- function(point_map, time_series) {
 eda_point_map_ui <- function(map) {
   return(
     div(
-      sidebarPanel(
-        useShinyjs(),
-        selectInput(
-          "eda_province",
-          "Province",
-          choices=names(hotspot_data)
-        ),
-        selectInput(
-          "eda_city",
-          "City/Regency",
-          choices=c("All", unique(eda_data_current$city)),
-          selected="All"
-        ),
-        disabled(
+      sidebarLayout(
+        sidebarPanel(
+          useShinyjs(),
           selectInput(
-            "eda_district",
-            "District",
-            choices=c("All", unique(eda_data_current$district)),
+            "eda_province",
+            "Province",
+            choices=names(hotspot_data)
+          ),
+          selectInput(
+            "eda_city",
+            "City/Regency",
+            choices=c("All", unique(eda_data_current$city)),
             selected="All"
+          ),
+          disabled(
+            selectInput(
+              "eda_district",
+              "District",
+              choices=c("All", unique(eda_data_current$district)),
+              selected="All"
+            )
+          ),
+          disabled(
+            selectInput(
+              "eda_sub_district",
+              "Sub-District",
+              choices=c("All", unique(eda_data_current$sub_district)),
+              selected="All"
+            )
+          ),
+          selectInput(
+            "eda_satellite",
+            "Satellite",
+            choices=c("TERRA/AQUA",
+                      "SNPP",
+                      "NOAA20",
+                      "NASA-MODIS",
+                      "NASA-SNPP",
+                      "NASA-NOAA20"),
+            multiple = T
+          ),
+          checkboxInput(
+            "eda_color_by_confidence",
+            "Color by confidence level?"
+          ),
+          
+          sliderInput("eda_date_range",
+                      "Dates:",
+                      min = min(eda_data_current$date),
+                      max = max(eda_data_current$date),
+                      value = c(
+                        min(eda_data_current$date),
+                        min(eda_data_current$date) + 
+                          floor((max(eda_data_current$date)-min(eda_data_current$date))/2)
+                      )
           )
         ),
-        disabled(
-          selectInput(
-            "eda_sub_district",
-            "Sub-District",
-            choices=c("All", unique(eda_data_current$sub_district)),
-            selected="All"
-          )
-        ),
-        selectInput(
-          "eda_satellite",
-          "Satellite",
-          choices=c("TERRA/AQUA",
-                    "SNPP",
-                    "NOAA20",
-                    "NASA-MODIS",
-                    "NASA-SNPP",
-                    "NASA-NOAA20"),
-          multiple = T
-        ),
-        checkboxInput(
-          "eda_color_by_confidence",
-          "Color by confidence level?"
-        ),
-
-        sliderInput("eda_date_range",
-                  "Dates:",
-                  min = min(eda_data_current$date),
-                  max = max(eda_data_current$date),
-                  value = c(
-                    min(eda_data_current$date),
-                    min(eda_data_current$date) + 
-                      floor((max(eda_data_current$date)-min(eda_data_current$date))/2)
-                  )
+        mainPanel(
+          withSpinner(tmapOutput(map), type=1)
         )
       ),
-      mainPanel(
-        withSpinner(tmapOutput(map), type=1)
-      )
+      hr(),
+      h4("Description"),
+      p("In this section, you can view the occurrences of fire hotspots in Sumatra in the years between 2015-2019 on an interactive point map."),
+      p("By narrowing down to city, district, and sub-district levels, you can zoom in on specific areas of Sumatra and analyze the data at a more granular level."),
+      p("You can also filter by satellite type. Different types of satellites may provide different levels of detail and accuracy in detecting fire hotspots. You can select the satellite type that best suits your needs and view the data accordingly."),
+      p("Additionally, you can view points colored by the confidence level at which they were detected by the satellites. This is useful to pinpoint areas where fire hotspots are detected with high confidence.")
     )
   )
 }
@@ -83,57 +91,64 @@ eda_point_map_ui <- function(map) {
 eda_time_series_ui <- function(time_series) {
   return(
     div(
-      sidebarPanel(
-        useShinyjs(),
-        selectInput(
-          "eda_province_2",
-          "Province",
-          choices=names(hotspot_data)
-        ),
-        selectInput(
-          "eda_city_2",
-          "City/Regency",
-          choices=c("All", unique(eda_data_current$city)),
-          selected="All"
-        ),
-        disabled(
+      sidebarLayout(
+        sidebarPanel(
+          useShinyjs(),
           selectInput(
-            "eda_district_2",
-            "District",
-            choices=c("All", unique(eda_data_current$district)),
+            "eda_province_2",
+            "Province",
+            choices=names(hotspot_data)
+          ),
+          selectInput(
+            "eda_city_2",
+            "City/Regency",
+            choices=c("All", unique(eda_data_current$city)),
             selected="All"
+          ),
+          disabled(
+            selectInput(
+              "eda_district_2",
+              "District",
+              choices=c("All", unique(eda_data_current$district)),
+              selected="All"
+            )
+          ),
+          disabled(
+            selectInput(
+              "eda_sub_district_2",
+              "Sub-District",
+              choices=c("All", unique(eda_data_current$sub_district)),
+              selected="All"
+            )
+          ),
+          selectInput(
+            "eda_year",
+            "Year",
+            choices=c("2015",
+                      "2016",
+                      "2017",
+                      "2018",
+                      "2019"),
+            selected="2015"
+          ),
+          selectInput(
+            "eda_confidence",
+            "Confidence Level",
+            choices=c("Low",
+                      "Medium",
+                      "High"),
+            multiple=T
           )
         ),
-        disabled(
-          selectInput(
-            "eda_sub_district_2",
-            "Sub-District",
-            choices=c("All", unique(eda_data_current$sub_district)),
-            selected="All"
-          )
-        ),
-        selectInput(
-          "eda_year",
-          "Year",
-          choices=c("2015",
-                    "2016",
-                    "2017",
-                    "2018",
-                    "2019"),
-          selected="2015"
-        ),
-        selectInput(
-          "eda_confidence",
-          "Confidence Level",
-          choices=c("Low",
-                    "Medium",
-                    "High"),
-          multiple=T
+        mainPanel(
+          withSpinner(plotOutput(time_series), type=1)
         )
       ),
-      mainPanel(
-        withSpinner(plotOutput(time_series), type=1)
-      )
+      hr(),
+      h4("Description"),
+      p("In this section, you can view time series charts of fire incidents in Sumatra by province, city/regency, district, or sub-district throughout a certain year. Additionally, you can choose which confidence levels you would like to take into account."),
+      p("The vertical (y) axis represents the count of fire hotspots, while the horizontal (x) axis shows the time. Each data point on the chart represents the number of fire incidents recorded during the chosen year."),
+      p("The time series chart allows you to easily visualize the pattern and trend of fire incidents in Sumatra over time, as well as identify seasonal patterns in the fire incidents.")
     )
   )
 }
@@ -250,7 +265,7 @@ eda_point_map_server <- function(input) {
   }
   
   if(nrow(eda_data_current) < 1) {
-    shinyalert("Something's Burning", "No records for the selected parameters.", type = "error")
+    shinyalert("Something's Burning", "...Or not. No records for the selected parameters.", type = "error")
     stop()
   } else {
     if(input$eda_color_by_confidence) {
