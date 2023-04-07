@@ -1,26 +1,31 @@
 pacman::p_load(tidyverse, sf, tmap, shinycssloaders, shinyjs, sfdep, stpp, shinyalert)
 source("data_manager.R")
 
-st_data_current <- hotspot_data[["aceh"]]
+st_data_current <- hotspot_data[["ACEH"]]
 
+# -----------------------
 # Main UI
+# -----------------------
 
 spatiotemporal_ui <- function(mk_plot, mk_table, ehsa_map, stik_plot) {
   return(
-    tabsetPanel(
-      tabPanel(title="Space-Time K-Function", 
-               st_stik_ui(stik_plot)),
-      tabPanel(title="Emerging Hotspot Analysis", 
-               st_ehsa_ui(ehsa_map)),
-      tabPanel(title="Mann Kendall", 
-               st_mann_kendall_ui(mk_plot, mk_table)),
+    fluidPage(
+      titlePanel("Spatiotemporal Analysis"),
+      tabsetPanel(
+        tabPanel(title="Space-Time K-Function", 
+                 st_stik_ui(stik_plot)),
+        tabPanel(title="Emerging Hotspot Analysis", 
+                 st_ehsa_ui(ehsa_map)),
+        tabPanel(title="Mann Kendall", 
+                 st_mann_kendall_ui(mk_plot, mk_table)),
+      )
     )
   )
 }
 
-##########################
+# -----------------------
 # UI
-##########################
+# -----------------------
 
 st_mann_kendall_ui <- function(plot, table) {
   return(
@@ -74,8 +79,8 @@ st_mann_kendall_ui <- function(plot, table) {
           actionButton("st_submit", "Submit")
         ),
         mainPanel(
-          withSpinner(plotOutput(plot), type=1),
-          withSpinner(tableOutput(table), type=1),
+          withSpinner(plotOutput(plot), type=1, color="#e9851d"),
+          withSpinner(tableOutput(table), type=1, color="#e9851d"),
         ),
       ),
       hr(),
@@ -89,7 +94,9 @@ st_mann_kendall_ui <- function(plot, table) {
           tags$li("H0: There is no monotonic trend in the series."),
           tags$li("H1:  A trend exists. This trend can be positive, negative, or non-null.")
         ),
-        p("The Mann Kendall test is performed using the Kendall package."),
+        p(HTML(paste0("The Mann Kendall test is performed using the Kendall package. For more information, please refer to the ", 
+                      a(href = 'https://cran.r-project.org/web/packages/Kendall/Kendall.pdf', 
+                        "official documentation"), "."))),
         p("After running the test and observing a p-value, you can choose whether to reject the null hypothesis or not based on your own chosen significance level."),
         h4("Intepretation"),
         p("After running the function with all your selected parameters, you will see a time series plot of the change in Gi* values in the sub-district over the chosen year."),
@@ -152,7 +159,7 @@ st_ehsa_ui <- function(map) {
           actionButton("st_submit_2", "Submit")
         ),
         mainPanel(
-          withSpinner(plotOutput(map), type=1)
+          withSpinner(plotOutput(map), type=1, color="#e9851d")
         )
       ),
       hr(),
@@ -162,9 +169,12 @@ st_ehsa_ui <- function(map) {
         p("Note that 'hot spot' in this context does not refer to fire hotspots, but spatial clusters with significantly high number of fire hotspots."),
         p("In this section, you can perform EHSA on an areal basis using aggregated count of fire hotspots within a province or a city. I.e. the feature we are looking at is the count of fire hotspots in a region."),
         h4("How it works"),
-        p("The EHSA is performed using sfdep's emerging_hotspots_analysis(), which combines the Getis-Ord Gi* statistic with Mann-Kendall test."),
+        p("The EHSA is performed using sfdep's emerging_hotspots_analysis, which combines the Getis-Ord Gi* statistic with Mann-Kendall test."),
         p("The Gi* statistic calculates the local spatial autocorrelation for each feature in a dataset by comparing the feature's value with the values of neighboring features."),
         p("You are able to adjust the number of time lags, number of simulations for Gi* calculation, and significance threshold."),
+        p(HTML(paste0("For more information, please refer to the ", 
+                      a(href = 'https://sfdep.josiahparry.com/reference/emerging_hotspot_analysis.html', 
+                        "official documentation"), "."))),
         h4("Intepretation"),
         p("After running the function with all your selected parameters, you will see a choropleth map. The different colors of the sub-districts indicate the kind of trend is detected with statistical significance."),
         p("The possible patterns are:"),
@@ -226,7 +236,7 @@ st_stik_ui <- function(plot_name) {
           actionButton("st_submit_3", "Submit")
         ),
         mainPanel(
-          withSpinner(plotOutput(plot_name), type=1),
+          withSpinner(plotOutput(plot_name), type=1, color="#e9851d"),
           fluidRow(
             useShinyjs(),
             column(4, 
@@ -266,6 +276,9 @@ st_stik_ui <- function(plot_name) {
         p("It provides a powerful tool for understanding the complex interactions between spatial and temporal processes and for identifying patterns and trends that might otherwise be missed."),
         h4("How it works"),
         p("You can input a specific sub-district to look for spatiotemporal autocorrelation throughout a specific year. The space-time K-function will then be calculated using stpp's STIK function for the specified parameters."),
+        p(HTML(paste0("For more information, please refer to the ", 
+                      a(href = 'https://rdrr.io/github/stpp-GitHub/stpp/man/STIKhat.html', 
+                        "official documentation"), "."))),
         h4("Intepretation"),
         p("After running the function with all your selected parameters, you will see either a contour plot, an image plot, or a perspective plot depending on your selection of Plot Type. The axes indicate distances in meters and times in days. The plot displays values for K - 2 pi u^2 v."),
         p("Hence, a positive value implies K > 2 pi u^2 v, indicating clustering. Conversely, a negative value implies K < 2 pi u^2 v, indicating regularity.")
@@ -275,9 +288,9 @@ st_stik_ui <- function(plot_name) {
   )
 }
 
-##########################
+# -----------------------
 # Refresh Inputs 1
-##########################
+# -----------------------
 
 st_refresh_inputs <- function(input, session) {
   return ({
@@ -320,9 +333,9 @@ st_refresh_sub_district <- function(input, session) {
   })
 }
 
-##########################
+# -----------------------
 # Refresh Inputs 2
-##########################
+# -----------------------
 
 st_refresh_inputs_2 <- function(input, session) {
   return ({
@@ -333,9 +346,9 @@ st_refresh_inputs_2 <- function(input, session) {
   })
 }
 
-##########################
+# -----------------------
 # Refresh Inputs 3
-##########################
+# -----------------------
 st_refresh_inputs_3 <- function(input, session) {
   return ({
     input$st_province_3
@@ -390,9 +403,9 @@ st_refresh_persp_plot_input_3 <- function(input, session) {
   })
 }
 
-##########################
+# -----------------------
 # Utility Server Functions
-##########################
+# -----------------------
 st_spacetime_server <- function(province, city, year) {
   if(city != "") {
     st_data_current <<- get_city_hotspots(province, city) %>%
@@ -481,9 +494,9 @@ st_gi_star_server <- function(input) {
   return(st_gi_star)
 }
 
-##########################
+# -----------------------
 # Mann Kendall Output
-##########################
+# -----------------------
 st_gi_star_plot_server <- function(gi_star_df) {
   return (renderPlot({
   ggplot(data = gi_star_df() %>% 
@@ -507,9 +520,9 @@ st_mann_kendall_server <- function(gi_star_df) {
   ))
 }
 
-##########################
+# -----------------------
 # EHSA Output
-##########################
+# -----------------------
 st_ehsa_server <- function(input) {
   st_ehsa <- eventReactive(input$st_submit_2, {
     
@@ -554,9 +567,9 @@ st_ehsa_server <- function(input) {
     }))
 }
   
-##########################
+# -----------------------
 # STIK Output
-##########################
+# -----------------------
 st_stik_server <- function(input) {
   st_stik <- eventReactive(input$st_submit_3, {
     validate(

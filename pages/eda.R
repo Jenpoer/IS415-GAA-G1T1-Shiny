@@ -1,15 +1,21 @@
 pacman::p_load(tidyverse, sf, tmap, shinycssloaders, shinyjs, shinyalert)
 source("data_manager.R")
 
-eda_data_current <- hotspot_data[["aceh"]]
+eda_data_current <- hotspot_data[["ACEH"]]
 
+# -----------------------
+# Main UI
+# -----------------------
 eda_ui <- function(point_map, time_series) {
   return(
-    tabsetPanel(
-      tabPanel(title="Point Map", 
-               eda_point_map_ui(point_map)),
-      tabPanel(title="Time Series", 
-               eda_time_series_ui(time_series))
+    fluidPage(
+      titlePanel("Exploratory Data Analysis"),
+      tabsetPanel(
+        tabPanel(title="Point Map", 
+                 eda_point_map_ui(point_map)),
+        tabPanel(title="Time Series", 
+                 eda_time_series_ui(time_series))
+      )
     )
   )
 }
@@ -64,7 +70,7 @@ eda_point_map_ui <- function(map) {
           ),
           
           sliderInput("eda_date_range",
-                      "Dates:",
+                      "Dates",
                       min = min(eda_data_current$date),
                       max = max(eda_data_current$date),
                       value = c(
@@ -75,7 +81,7 @@ eda_point_map_ui <- function(map) {
           )
         ),
         mainPanel(
-          withSpinner(tmapOutput(map), type=1)
+          withSpinner(tmapOutput(map), type=1, color="#e9851d")
         )
       ),
       hr(),
@@ -141,7 +147,7 @@ eda_time_series_ui <- function(time_series) {
           )
         ),
         mainPanel(
-          withSpinner(plotOutput(time_series), type=1)
+          withSpinner(plotOutput(time_series), type=1, color="#e9851d")
         )
       ),
       hr(),
@@ -242,6 +248,9 @@ eda_refresh_sub_district_2 <- function(input, session) {
   })
 }
 
+# -----------------------
+# Main Server Functions
+# -----------------------
 eda_point_map_server <- function(input) {
   eda_data_current <<- hotspot_data[[input$eda_province]]
   if(input$eda_city != "All") {
