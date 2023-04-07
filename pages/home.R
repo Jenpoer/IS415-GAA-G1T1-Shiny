@@ -45,7 +45,7 @@ home_ui <- div(
   ),
   h3("Features"),
   h4("1. Exploratory Data Analysis"),
-  p("Users can use this our Exploratory Data Analysis interface to interactively explore 
+  p("Users can use our Exploratory Data Analysis interface to interactively explore 
     the provided dataset. Our EDA tools include:"),
   tags$ol(
     tags$li("Point Map - An interactive point map for users to select and visualise 
@@ -54,11 +54,22 @@ home_ui <- div(
             occurrences over the course of a specific year")
   ),
   h4("2. Kernel Density Estimation"),
-  p("Users are able to conduct first-order spatial point patterns analysis by viewing 
-    kernel density estimation maps of forest fire hotspots."),
+  p("Users are able to conduct first-order spatial point patterns analysis by 
+    generating and viewing kernel density estimation maps of forest fire hotspots. 
+    Kernel Density Estimation computes the intensity of point distribution using a 
+    kernel function, and presents it in a visualisation known as a kernel denstiy map."),
   h4("3. Spatial Cluster Analysis"),
   p("Users are able to conduct second-order spatial point patterns analysis to identify 
-    and statistically confirm possible interactions between events."),
+    and statistically confirm possible interactions between events. Using the provided 
+    test statistic functions, users can carry out the test for Complete Spatial Randomness, 
+    which measures how points influence the location of one another."),
+  p("The available functions are as follows:"),
+  tags$ul(
+    tags$li("F Function"), 
+    tags$li("G Function"), 
+    tags$li("K Function"), 
+    tags$li("L Function")
+  ),
   h4("4. Spatiotemporal Area Analysis"),
   p("Users are able to conduct various methods of spatiotemporal analysis by area in 
     order to better understand changes in hotspot point patterns over time. Using this 
