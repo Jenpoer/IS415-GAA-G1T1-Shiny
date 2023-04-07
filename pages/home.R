@@ -1,5 +1,5 @@
 home_ui <- div(
-  titlePanel("This is FINE: Fire Incidents Explorer"),
+  titlePanel("This is FINE: Fire INcidents Explorer"),
   h3("Overview"),
   p("FINE is an interactive web application tool that aids users in conducting 
     Spatial Point Pattern Analysis to analyse the spatial distribution of forest 
