@@ -1,4 +1,4 @@
-pacman::p_load(tidyverse, sf, tmap, shinycssloaders, shinyjs, sfdep, stpp, shinyalert)
+pacman::p_load(tidyverse, sf, tmap, shinycssloaders, shinyjs, sfdep, stpp, shinyalert, zoo)
 source("data_manager.R")
 
 st_data_current <- hotspot_data[["ACEH"]]
