@@ -35,8 +35,8 @@ kde_ui <- function(map){
           selectInput(
             "bwMet",
             "Bandwidth selection method",
-            choices=c("Automatic", "Custom"),
-            selected="Automatic"
+            choices=c("Adaptive", "Fixed"),
+            selected="Adaptive"
           ),
           disabled(
             selectInput(
@@ -100,16 +100,16 @@ kde_server <- function(input){
     bw <- bw.ppl(kde_ppp)
     # kde.bw <- density(kde_ppp.km, sigma=bw.ppl, edge=TRUE, kernel="gaussian")
     
-    if (input$bwMet == "Custom"){
-      kde_bw_custom <- density(kde_ppp.km, sigma=(input$bwSel/1000), edge=TRUE, kernel=input$kerMet)
-      gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_custom)
+    if (input$bwMet == "Fixed"){
+      kde_bw_fixed <- density(kde_ppp.km, sigma=(input$bwSel/1000), edge=TRUE, kernel=input$kerMet)
+      gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_fixed)
     }
     else{
       kde_bw_adaptive <- adaptive.density(kde_ppp.km, method="kernel")
       gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_adaptive)
     }
     # gridded_kde_bw <- as.SpatialGridDataFrame.im(kde.bw)
-    # gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_custom)
+    # gridded_kde_bw <- as.SpatialGridDataFrame.im(kde_bw_fixed)
     kde_bw_raster <- raster(gridded_kde_bw)
     projection(kde_bw_raster) <- CRS("+init=EPSG:23845 +units=km")
     kde_plot <- tm_shape(kde_bw_raster) + 
@@ -142,7 +142,7 @@ kde_refresh_inputs <- function(input, session) {
 kde_refresh_bw <- function(input, session) {
   return({
     input$bwMet
-    if(input$bwMet == "Custom") {
+    if(input$bwMet == "Fixed") {
       enable("kerMet")
       enable("bwSel")
     } else {

@@ -280,7 +280,7 @@ spatial_cluster_server <- function(input) {
     # print(nrow(sc_point_data))
     
     if(nrow(sc_point_data) < 10) {
-      shinyalert("Too Little Data!", "Please select another location / month", type = "error")
+      shinyalert("Something's Burning", "...But there's not enough. Please select another location / month", type = "error")
       stop()
     }
     
