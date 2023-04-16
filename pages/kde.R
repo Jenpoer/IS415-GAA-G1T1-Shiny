@@ -23,7 +23,7 @@ kde_ui <- function(map){
           selectInput(
             "kde_city",
             "City/Regency",
-            choices=c("All", unique(kde_hp$city)),
+            choices=c(unique(kde_hp$city)),
             selected= unique(kde_hp$city)[4]
           ),
           selectInput(
