@@ -85,6 +85,7 @@ home_ui <- div(
             distribution of point events by subdistrict")
   ),
   h3("Useful Links"),
+  p(a(href="https://is415-fire-incidents-explorer.netlify.app/user-guide.html", "User Guide")),
   p(HTML(paste0("For more information, please visit our  ", 
                 a(href = 'https://is415-fire-incidents-explorer.netlify.app/', 
                   "project website"), ".")))
